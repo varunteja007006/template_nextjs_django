@@ -28,7 +28,6 @@ urlpatterns = [
 
     # Authentication APIs
     path('api/v1/auth/', include("login.urls")),
-    path('api/v1/login/', include("login.urls")),
     re_path(r'^auth/', include('drf_social_oauth2.urls', namespace='drf')),
 
     # Swagger and ReDoc documentation URLs
