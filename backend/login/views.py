@@ -7,37 +7,53 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.shortcuts import get_object_or_404
-
 from datetime import datetime, timedelta
+from .serializer import CustomTokenObtainPairViewSerializer
+
+isHTTPOnly = False
+isSecure = False
+isSameSite = 'None'
+isPath = '/'
+minutes = 60
+days = 30
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairViewSerializer
+
     def post(self, request, *args, **kwargs):
         try:
+            # user info will go here, gets validated and returns the tokens 
             response = super().post(request, *args, **kwargs)
+
             tokens = response.data
 
+            # check for tokens
             if 'access' in tokens and 'refresh' in tokens:
                 access_token = tokens['access']
                 refresh_token = tokens['refresh']
 
+                # set cookies for both access and refresh
                 response.set_cookie(
                     key='access_token', 
                     value=access_token, 
-                    httponly=False, 
-                    secure=True, 
-                    samesite='None',
-                    path='/',
-                    expires=datetime.now() + timedelta(seconds=60)
+                    httponly=isHTTPOnly, 
+                    secure=isSecure, 
+                    samesite=isSameSite,
+                    path=isPath,
+                    expires=datetime.now() + timedelta(minutes=minutes)
                 )
+                
                 response.set_cookie(
                     key='refresh_token', 
                     value=refresh_token, 
-                    httponly=True, 
-                    secure=True, 
-                    samesite='None',
-                    path='/',
-                    expires=datetime.now() + timedelta(seconds=60)
+                    httponly=isHTTPOnly, 
+                    secure=isSecure, 
+                    samesite=isSameSite,
+                    path=isPath,
+                    expires=datetime.now() + timedelta(days=days)
                 )
+
                 response.data = {'success': True}
 
             return response
@@ -50,33 +66,31 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         try:
+            # get the refresh token from the cookies and attach it to the request body
+            refresh_token = request.COOKIES.get('refresh_token')
+
+            if not refresh_token:
+                return Response({'error': 'Refresh token missing or expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+            request.data['refresh'] = refresh_token
+
+            # now pass the request with refresh token to generate the access and refresh tokens
             response = super().post(request, *args, **kwargs)
             tokens = response.data
-            refresh_token = request.COOKIES.get('refresh_token')
 
             if 'access' in tokens and 'refresh' in tokens:
                 access_token = tokens['access']
-                refresh_token = tokens['refresh']
                 
                 response.set_cookie(
                     key='access_token', 
                     value=access_token, 
-                    httponly=False, 
-                    secure=True, 
-                    samesite='None',
-                    path='/',
-                    expires=datetime.now() + timedelta(seconds=60)
+                    httponly=isHTTPOnly, 
+                    secure=isSecure, 
+                    samesite=isSameSite,
+                    path=isPath,
+                    expires=datetime.now() + timedelta(minutes=minutes)
                 )
 
-                response.set_cookie(
-                    key='refresh_token', 
-                    value=refresh_token, 
-                    httponly=True, 
-                    secure=True, 
-                    samesite='None',
-                    path='/',
-                    expires=datetime.now() + timedelta(seconds=60)
-                )
                 response.data = {'success': True}
 
             return response
@@ -107,11 +121,11 @@ def login(request):
         response.set_cookie(
             key='token',
             value=token.key, 
-            httponly=False, 
-            secure=True, 
-            samesite='None',
-            path='/',
-            expires = datetime.now() + timedelta(seconds=60)
+            httponly=isHTTPOnly, 
+            secure=isSecure, 
+            samesite=isSameSite,
+            path=isPath,
+            expires = datetime.now() + timedelta(days=days)
         )
 
         response.status_code = status.HTTP_200_OK
@@ -131,7 +145,6 @@ def signup(request):
         if User.objects.filter(email=request.data["email"]).exists():
             return Response({'error': 'Email already exists'}, status=status.HTTP_409_CONFLICT)
 
-
         user = User.objects.create_user(
             username=request.data["username"],
             email=request.data["email"],
@@ -150,15 +163,14 @@ def signup(request):
                          'full_name': user.get_full_name(), 
                          'email': user.email  }
         
-
         response.set_cookie(
             key='token',
             value=token.key, 
-            httponly=False, 
-            secure=True, 
-            samesite='None',
-            path='/',
-            expires = datetime.now() + timedelta(seconds=60)
+            httponly=isHTTPOnly, 
+            secure=isSecure, 
+            samesite=isSameSite,
+            path=isPath,
+            expires = datetime.now() + timedelta(days=days)
         )
 
         response.status_code = status.HTTP_201_CREATED
@@ -171,19 +183,33 @@ def signup(request):
 @permission_classes([IsAuthenticated])
 def logout(request):
     try:
-        user = request.user
-        token = Token.objects.get(user=user)
-        token.delete()
+        if 'token' not in request.COOKIES and 'access_token' not in request.COOKIES and 'refresh_token' not in request.COOKIES:
+            return Response({'error': 'Token not found'},status=status.HTTP_404_NOT_FOUND)
 
-        # Need to add logic to delete access_token and refresh_token as well
+        if 'token' in request.COOKIES:
+            token = Token.objects.get(key=request.COOKIES.get('token'))
+            if token.user.is_authenticated:
+                token.delete()
 
-        return Response({ 'success': True },status=status.HTTP_200_OK)
-    except Token.DoesNotExist:
-        return Response({'error': 'Token not found'},status=status.HTTP_404_NOT_FOUND)
+        # now delete the tokens from the cookies
+        res = Response()
+
+        res.data = {'success': True}
+
+        res.delete_cookie('token')
+        res.delete_cookie('access_token')
+        res.delete_cookie('refresh_token')
+
+        res.status_code = status.HTTP_200_OK
+
+        return res
+    
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-@authentication_classes([TokenAuthentication])
 def test_token(request):
     if request.user.is_authenticated:
         user_data = {
@@ -196,7 +222,6 @@ def test_token(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdminUser])
-@authentication_classes([TokenAuthentication])
 def emergency_logout(request):
     deleted_count, _ = Token.objects.all().delete()
     return Response({'message': f'{deleted_count} tokens deleted.'}, status=status.HTTP_200_OK)
