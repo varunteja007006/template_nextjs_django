@@ -15,7 +15,8 @@ isSecure = False
 isSameSite = 'None'
 isPath = '/'
 minutes = 60
-days = 30
+days_30 = 30
+days_1 =1
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -51,7 +52,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     secure=isSecure, 
                     samesite=isSameSite,
                     path=isPath,
-                    expires=datetime.now() + timedelta(days=days)
+                    expires=datetime.now() + timedelta(days=days_30)
                 )
 
                 response.data = {'success': True}
@@ -125,7 +126,7 @@ def login(request):
             secure=isSecure, 
             samesite=isSameSite,
             path=isPath,
-            expires = datetime.now() + timedelta(days=days)
+            expires = datetime.now() + timedelta(days=days_1)
         )
 
         response.status_code = status.HTTP_200_OK
@@ -170,7 +171,7 @@ def signup(request):
             secure=isSecure, 
             samesite=isSameSite,
             path=isPath,
-            expires = datetime.now() + timedelta(days=days)
+            expires = datetime.now() + timedelta(days=days_1)
         )
 
         response.status_code = status.HTTP_201_CREATED

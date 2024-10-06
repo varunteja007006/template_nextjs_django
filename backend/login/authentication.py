@@ -1,9 +1,7 @@
-from typing import Tuple
 from django.contrib.auth.models import User
 from rest_framework.request import Request
-from  rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import Token 
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.authtoken.models import Token
 
 class CustomCookiesJWTAuthentication(JWTAuthentication):
     def authenticate(self, request: Request):
@@ -17,6 +15,15 @@ class CustomCookiesJWTAuthentication(JWTAuthentication):
                 except User.DoesNotExist:
                     return None
                 return user, validated_token
+            except Exception:
+                return None
+            
+        token =  request.COOKIES.get('token')
+        
+        if token:
+            try:
+                user = Token.objects.get(key=token).user
+                return user, token
             except Exception:
                 return None
 
