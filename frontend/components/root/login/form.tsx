@@ -24,10 +24,9 @@ import { useMutation } from "react-query";
 import { loginUser } from "@/api/user/user.api";
 import { useStore } from "@/store/store";
 import { useShallow } from "zustand/react/shallow";
-import { User } from "@/types/user";
+import { User } from "@/types/user.types";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
-import _ from "lodash";
 
 export default function LoginForm() {
   const { toast } = useToast();

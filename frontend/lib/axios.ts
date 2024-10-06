@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import Cookies from "js-cookie";
 import _ from "lodash";
 
@@ -20,7 +21,7 @@ axios.interceptors.response.use(
   function (error) {
     if (error.status === 401) {
       Cookies.remove("token");
-      // window.location.href = "/login"; //
+      window.location.href = "/login"; // If the user is not authenticated, redirect to login page
     }
 
     const data = error.response?.data ?? {};

@@ -1,8 +1,6 @@
-import { User } from "@/types/user";
+import { User } from "@/types/user.types";
 import { StateCreator } from "zustand";
 import Cookies from "js-cookie";
-
-const inFifteenMinutes = new Date(new Date().getTime() + 1 * 60 * 1000);
 
 type UserState = {
   full_name: string;
@@ -36,8 +34,7 @@ export const createUserSlice: StateCreator<
       state.full_name = data.full_name;
     });
     Cookies.set("token", data.token, {
-      expires: 7, // testing purpose
-      // 7
+      expires: 1, // expires in 7 days
     });
   },
   updateUserStore: (name, value) => {

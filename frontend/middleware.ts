@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
 import { LOGIN_ROUTES, UNPROTECTED_ROUTES } from "@/constants/routes.constant";
 
 // This function can be marked `async` if using `await` inside

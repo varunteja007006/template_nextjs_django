@@ -15,6 +15,7 @@ export function UserContextProvider({
   const pathname = usePathname();
 
   const token = Cookies.get("token");
+
   React.useEffect(() => {
     // If user has token and is going to login routes then redirect to home
     if (!!token && LOGIN_ROUTES.includes(pathname)) {

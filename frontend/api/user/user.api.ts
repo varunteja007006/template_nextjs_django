@@ -1,6 +1,6 @@
 import axios from "@/lib/axios";
 import { LoginFormSchema } from "@/schema/auth/login";
-import { User } from "@/types/user";
+import { User } from "@/types/user.types";
 import { z } from "zod";
 
 export const loginUser = async (data: z.infer<typeof LoginFormSchema>) => {
