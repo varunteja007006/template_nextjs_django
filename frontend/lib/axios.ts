@@ -1,5 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import _ from "lodash";
 
 axios.defaults.baseURL = `${process.env.NEXT_PUBLIC_BACKEND_API}`;
 axios.defaults.timeout = 1000;
@@ -11,5 +12,24 @@ axios.interceptors.request.use((config) => {
   }
   return config;
 });
+
+axios.interceptors.response.use(
+  function (response) {
+    return response;
+  },
+  function (error) {
+    if (error.status === 401) {
+      Cookies.remove("token");
+      // window.location.href = "/login"; //
+    }
+
+    const data = error.response?.data ?? {};
+    const dataArr = Object.values(data);
+    const errorMessage = _.join(dataArr, ", ");
+    error.response.data = errorMessage;
+
+    return Promise.reject(error);
+  }
+);
 
 export default axios;

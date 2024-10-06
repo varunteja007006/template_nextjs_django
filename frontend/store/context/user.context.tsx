@@ -14,8 +14,8 @@ export function UserContextProvider({
   const router = useRouter();
   const pathname = usePathname();
 
+  const token = Cookies.get("token");
   React.useEffect(() => {
-    const token = Cookies.get("token");
     // If user has token and is going to login routes then redirect to home
     if (!!token && LOGIN_ROUTES.includes(pathname)) {
       return router.push("/user-profile");
@@ -30,7 +30,7 @@ export function UserContextProvider({
     ) {
       return router.push("/login");
     }
-  }, [pathname]);
+  }, [pathname, token]);
 
   return <userContext.Provider value={{}}>{children}</userContext.Provider>;
 }

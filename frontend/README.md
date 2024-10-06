@@ -28,3 +28,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Components
 https://jidefr.medium.com/shadcn-ui-add-components-and-resources-0846b0f57596
+
+js-cookies
+https://github.com/js-cookie/js-cookie/wiki/Frequently-Asked-Questions#expire-cookies-in-less-than-a-day

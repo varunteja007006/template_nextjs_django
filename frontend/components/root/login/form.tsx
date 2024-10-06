@@ -26,6 +26,8 @@ import { useStore } from "@/store/store";
 import { useShallow } from "zustand/react/shallow";
 import { User } from "@/types/user";
 import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
+import _ from "lodash";
 
 export default function LoginForm() {
   const { toast } = useToast();
@@ -62,8 +64,15 @@ export default function LoginForm() {
     router.push("/user-profile");
   }
 
-  function onError(error: Error) {
-    console.error(error);
+  function onError(error: AxiosError) {
+    toast({
+      title: `${error.response?.statusText ?? ""}`,
+      description:
+        (error.response?.data as string) || `Oops something went wrong!`,
+      variant: "destructive",
+    });
+
+    console.error(error.message);
   }
 
   const login = useMutation({
@@ -75,8 +84,6 @@ export default function LoginForm() {
   function onSubmit(data: z.infer<typeof LoginFormSchema>) {
     login.mutate(data);
   }
-
-
 
   return (
     <Card className="flex flex-col items-start justify-start gap-2 h-fit max-w-[280px] p-5">

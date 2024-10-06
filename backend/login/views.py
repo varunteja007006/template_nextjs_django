@@ -6,6 +6,7 @@ from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.shortcuts import get_object_or_404
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -83,13 +84,19 @@ class CustomTokenRefreshView(TokenRefreshView):
 @api_view(['POST'])
 def login(request):
     try:
-        user = User.objects.get(username=request.data["username"])
+        user = get_object_or_404(User, username=request.data["username"])
+
+        if not user.check_password(request.data["password"]):
+            return Response({'error': 'Invalid password'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         token, created = Token.objects.get_or_create(user=user)
+
         return Response({'token': token.key, 
                          'created': created, 
                          'full_name': user.get_full_name(), 
                          'email': user.email  }, 
                         status=status.HTTP_200_OK)
+    
     except User.DoesNotExist:
         return Response({'error': 'User not found'},status=status.HTTP_404_NOT_FOUND)
     
