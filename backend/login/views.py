@@ -43,7 +43,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     path=isPath,
                     expires=datetime.now() + timedelta(minutes=minutes)
                 )
-                
+
                 response.set_cookie(
                     key='refresh_token', 
                     value=refresh_token, 
@@ -78,9 +78,9 @@ class CustomTokenRefreshView(TokenRefreshView):
             response = super().post(request, *args, **kwargs)
             tokens = response.data
 
-            if 'access' in tokens and 'refresh' in tokens:
+            if 'access' in tokens:
                 access_token = tokens['access']
-                
+
                 response.set_cookie(
                     key='access_token', 
                     value=access_token, 
@@ -92,8 +92,8 @@ class CustomTokenRefreshView(TokenRefreshView):
                 )
 
                 response.data = {'success': True}
-
-            return response
+                
+            return response 
         except KeyError as e:
             return Response({'error': f'Missing token: {str(e)}', 'success': False}, status=status.HTTP_400_BAD_REQUEST)            
         except Exception as e:

@@ -22,6 +22,6 @@ urlpatterns = [
     path('login/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
 
     # Customized Access and Refresh token generating login API
-    path('login/token/variant_custom', views.CustomTokenObtainPairView.as_view() , name='token_obtain_pair_customized'),
-    path('login/token/refresh/variant_custom', views.CustomTokenRefreshView.as_view(), name='token_refresh_customized'),
+    path('login/token/v2', views.CustomTokenObtainPairView.as_view() , name='token_obtain_pair_customized'),
+    path('login/token/refresh/v2', views.CustomTokenRefreshView.as_view(), name='token_refresh_customized'),
 ]
