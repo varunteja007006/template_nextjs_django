@@ -8,25 +8,26 @@ from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.shortcuts import get_object_or_404
 
+from datetime import datetime, timedelta
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
             response = super().post(request, *args, **kwargs)
             tokens = response.data
 
-            # Check if tokens are present
             if 'access' in tokens and 'refresh' in tokens:
                 access_token = tokens['access']
                 refresh_token = tokens['refresh']
 
-                # Set cookies in the existing response object
                 response.set_cookie(
                     key='access_token', 
                     value=access_token, 
-                    httponly=True, 
+                    httponly=False, 
                     secure=True, 
                     samesite='None',
-                    path='/'
+                    path='/',
+                    expires=datetime.now() + timedelta(seconds=60)
                 )
                 response.set_cookie(
                     key='refresh_token', 
@@ -34,7 +35,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     httponly=True, 
                     secure=True, 
                     samesite='None',
-                    path='/'
+                    path='/',
+                    expires=datetime.now() + timedelta(seconds=60)
                 )
                 response.data = {'success': True}
 
@@ -55,22 +57,25 @@ class CustomTokenRefreshView(TokenRefreshView):
             if 'access' in tokens and 'refresh' in tokens:
                 access_token = tokens['access']
                 refresh_token = tokens['refresh']
-                # Set cookies in the existing response object
+                
                 response.set_cookie(
                     key='access_token', 
                     value=access_token, 
-                    httponly=True, 
+                    httponly=False, 
                     secure=True, 
                     samesite='None',
-                    path='/'
+                    path='/',
+                    expires=datetime.now() + timedelta(seconds=60)
                 )
+
                 response.set_cookie(
                     key='refresh_token', 
                     value=refresh_token, 
                     httponly=True, 
                     secure=True, 
                     samesite='None',
-                    path='/'
+                    path='/',
+                    expires=datetime.now() + timedelta(seconds=60)
                 )
                 response.data = {'success': True}
 
@@ -91,11 +96,26 @@ def login(request):
         
         token, created = Token.objects.get_or_create(user=user)
 
-        return Response({'token': token.key, 
+        response = Response()
+
+        response.data = {'token': token.key, 
                          'created': created, 
                          'full_name': user.get_full_name(), 
-                         'email': user.email  }, 
-                        status=status.HTTP_200_OK)
+                         'email': user.email  }
+        
+
+        response.set_cookie(
+            key='token',
+            value=token.key, 
+            httponly=False, 
+            secure=True, 
+            samesite='None',
+            path='/',
+            expires = datetime.now() + timedelta(seconds=60)
+        )
+
+        response.status_code = status.HTTP_200_OK
+        return response
     
     except User.DoesNotExist:
         return Response({'error': 'User not found'},status=status.HTTP_404_NOT_FOUND)
@@ -123,12 +143,26 @@ def signup(request):
         
         token, created = Token.objects.get_or_create(user=user)
 
-        return Response({
-            'token': token.key,
-            'created': created,
-            'full_name': user.get_full_name(),
-            'email': user.email
-        }, status=status.HTTP_201_CREATED)
+        response = Response()
+
+        response.data = {'token': token.key, 
+                         'created': created, 
+                         'full_name': user.get_full_name(), 
+                         'email': user.email  }
+        
+
+        response.set_cookie(
+            key='token',
+            value=token.key, 
+            httponly=False, 
+            secure=True, 
+            samesite='None',
+            path='/',
+            expires = datetime.now() + timedelta(seconds=60)
+        )
+
+        response.status_code = status.HTTP_201_CREATED
+        return response
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -140,6 +174,9 @@ def logout(request):
         user = request.user
         token = Token.objects.get(user=user)
         token.delete()
+
+        # Need to add logic to delete access_token and refresh_token as well
+
         return Response({ 'success': True },status=status.HTTP_200_OK)
     except Token.DoesNotExist:
         return Response({'error': 'Token not found'},status=status.HTTP_404_NOT_FOUND)

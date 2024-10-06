@@ -5,27 +5,31 @@ import { LOGIN_ROUTES, UNPROTECTED_ROUTES } from "@/constants/routes.constant";
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
-  let token = request.cookies.get("token");
-  let access_token = request.cookies.get("access_token");
-  let refresh_token = request.cookies.get("refresh_token");
+  const hasToken = request.cookies.has("token");
+  const hasAccessToken = request.cookies.has("access_token");
+  const hasRefreshToken = request.cookies.has("refresh_token");
 
   // If user has token and is going to login routes then redirect to home
-  if (!!token?.value && LOGIN_ROUTES.includes(request.nextUrl.pathname)) {
+  if (hasToken && LOGIN_ROUTES.includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
   // If user has no token and is not going to protected routes then redirect to login
-  else if (
-    !token?.value &&
-    // !access_token?.value &&
-    // !refresh_token?.value &&
-    !UNPROTECTED_ROUTES.includes(request.nextUrl.pathname)
-  ) {
+  else if (hasToken && !UNPROTECTED_ROUTES.includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  let token = request.cookies.get("token");
+  let access_token = request.cookies.get("access_token");
+  let refresh_token = request.cookies.get("refresh_token");
+
+  console.log("\n------MIDDLEWARE LOGGING:-------");
   console.log("pathname:", request.nextUrl.pathname);
   console.log("token:", token?.value);
+  console.log("access_token:", access_token?.value);
+  console.log("refresh_token:", refresh_token?.value);
+  console.log("------------------------------------\n");
+
   //   const allCookies = request.cookies.getAll();
   //   console.log(allCookies); // => [{ name: 'nextjs', value: 'fast' }]
 
@@ -48,7 +52,6 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
 // matcher allows you to filter Middleware to run on specific paths.
 // filter multiple paths
 export const config = {

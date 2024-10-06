@@ -33,9 +33,6 @@ export const createUserSlice: StateCreator<
       state.email = data.email;
       state.full_name = data.full_name;
     });
-    Cookies.set("token", data.token, {
-      expires: 1, // expires in 7 days
-    });
   },
   updateUserStore: (name, value) => {
     set((state) => {

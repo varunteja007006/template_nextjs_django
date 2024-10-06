@@ -17,8 +17,9 @@ import { useShallow } from "zustand/react/shallow";
 import { useMutation } from "react-query";
 import { logoutUser } from "@/api/user/user.api";
 import { useRouter } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
 
-export default function BasicSection() {
+export default function BasicProfile() {
   const { toast } = useToast();
   const router = useRouter();
 
@@ -88,6 +89,10 @@ export default function BasicSection() {
         <div className="grid grid-cols-2 gap-4">
           <p>Address:</p>
           <p>-</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <p>Remember login:</p>
+          <Checkbox defaultChecked />
         </div>
       </CardContent>
     </Card>

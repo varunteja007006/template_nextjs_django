@@ -5,6 +5,7 @@ import _ from "lodash";
 
 axios.defaults.baseURL = `${process.env.NEXT_PUBLIC_BACKEND_API}`;
 axios.defaults.timeout = 1000;
+axios.defaults.withCredentials = true; // Important for sending cookies
 
 axios.interceptors.request.use((config) => {
   const token = Cookies.get("token");
@@ -18,6 +19,7 @@ axios.interceptors.response.use(
   function (response) {
     return response;
   },
+
   function (error) {
     if (error.status === 401) {
       Cookies.remove("token");
