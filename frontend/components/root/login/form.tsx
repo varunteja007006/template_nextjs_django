@@ -18,15 +18,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { LoginFormSchema } from "@/schema/auth/login";
 import { useMutation } from "react-query";
-import { loginUser } from "@/api/user/user.api";
+import { loginUser, loginUserV2 } from "@/api/login/login.api";
 import { useStore } from "@/store/store";
 import { useShallow } from "zustand/react/shallow";
 import { User } from "@/types/user.types";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginForm() {
   const { toast } = useToast();
@@ -53,7 +55,6 @@ export default function LoginForm() {
       return;
     }
 
-    // if response success
     loginUserStore(response);
     toast({
       title: "Login Successful",
@@ -61,6 +62,27 @@ export default function LoginForm() {
       variant: "success",
     });
     router.push("/user-profile");
+  }
+
+  function onSuccessV2(response: { success: boolean } | undefined) {
+    // If response failed
+    if (!response) {
+      toast({
+        title: "Login Failed",
+        description: `Oops something went wrong!`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (response.success) {
+      toast({
+        title: "Login Successful",
+        description: `Welcome!`,
+        variant: "success",
+      });
+      router.push("/user-profile");
+    }
   }
 
   function onError(error: AxiosError) {
@@ -74,13 +96,27 @@ export default function LoginForm() {
     console.error(error.message);
   }
 
-  const login = useMutation({
+  const login = useMutation<User, AxiosError, z.infer<typeof LoginFormSchema>>({
     mutationFn: loginUser,
     onSuccess,
     onError,
   });
 
+  const loginV2 = useMutation<
+    { success: boolean },
+    AxiosError,
+    z.infer<typeof LoginFormSchema>
+  >({
+    mutationFn: loginUserV2,
+    onSuccess: onSuccessV2,
+    onError,
+  });
+
   function onSubmit(data: z.infer<typeof LoginFormSchema>) {
+    if (form.getValues("rememberLogin")) {
+      loginV2.mutate(data);
+      return;
+    }
     login.mutate(data);
   }
 
@@ -105,6 +141,7 @@ export default function LoginForm() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="password"
@@ -114,10 +151,25 @@ export default function LoginForm() {
                 <FormControl>
                   <Input type="password" placeholder="password" {...field} />
                 </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="rememberLogin"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Remember Login</FormLabel>
+                </div>
               </FormItem>
             )}
           />

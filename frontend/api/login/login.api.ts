@@ -9,7 +9,10 @@ export const loginUser = async (data: z.infer<typeof LoginFormSchema>) => {
 };
 
 export const loginUserV2 = async (data: z.infer<typeof LoginFormSchema>) => {
-  const response = await axios.post<User>("/api/v1/auth/login/token/v2", data);
+  const response = await axios.post<{ success: boolean }>(
+    "/api/v1/auth/login/token/v2",
+    data
+  );
   return response.data;
 };
 

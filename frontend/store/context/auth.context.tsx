@@ -28,14 +28,20 @@ export function AuthContextProvider({
   const access_token = Cookies.get("access_token");
   const refresh_token = Cookies.get("refresh_token");
 
+  console.log(access_token);
+  console.log(refresh_token);
+
   React.useEffect(() => {
     // If user has token and is going to login routes then redirect to home
-    if (!!token && LOGIN_ROUTES.includes(pathname)) {
+    if (
+      (!!token || !!access_token || !!refresh_token) &&
+      LOGIN_ROUTES.includes(pathname)
+    ) {
       return router.push("/user-profile");
     }
 
     // If user has no token and is not going to protected routes then redirect to login
-    else if (!token) {
+    else if (!token && !access_token && !refresh_token) {
       if (email && full_name) {
         logoutUserStore();
       }

@@ -10,15 +10,21 @@ export function middleware(request: NextRequest) {
   const hasRefreshToken = request.cookies.has("refresh_token");
 
   // If user has token and is going to login routes then redirect to home
-  if (hasToken && LOGIN_ROUTES.includes(request.nextUrl.pathname)) {
+  if (
+    (hasToken || hasAccessToken || hasRefreshToken) &&
+    LOGIN_ROUTES.includes(request.nextUrl.pathname)
+  ) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
   // If user has no token and is going to protected routes then redirect to login
   else if (
     !hasToken &&
+    !hasAccessToken &&
+    !hasRefreshToken &&
     !UNPROTECTED_ROUTES.includes(request.nextUrl.pathname)
   ) {
+    console.log("object");
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

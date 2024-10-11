@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/store/store";
 import { useShallow } from "zustand/react/shallow";
 import { useMutation } from "react-query";
-import { logoutUser } from "@/api/user/user.api";
+import { logoutUser } from "@/api/login/login.api";
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 
