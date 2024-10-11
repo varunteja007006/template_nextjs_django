@@ -23,22 +23,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LoginFormSchema } from "@/schema/auth/login";
 import { useMutation } from "react-query";
 import { loginUser, loginUserV2 } from "@/api/login/login.api";
-import { useStore } from "@/store/store";
-import { useShallow } from "zustand/react/shallow";
 import { User } from "@/types/user.types";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { jwtDecode } from "jwt-decode";
+import { useAuthContext } from "@/store/context/auth.context";
 
 export default function LoginForm() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const { loginUserStore } = useStore(
-    useShallow((state) => ({
-      loginUserStore: state.loginUserStore,
-    }))
-  );
+  const { setUserData } = useAuthContext();
 
   const form = useForm<z.infer<typeof LoginFormSchema>>({
     resolver: zodResolver(LoginFormSchema),
@@ -55,7 +50,8 @@ export default function LoginForm() {
       return;
     }
 
-    loginUserStore(response);
+    setUserData({ email: response.email, full_name: response.full_name });
+
     toast({
       title: "Login Successful",
       description: `Welcome ${response.full_name}!`,

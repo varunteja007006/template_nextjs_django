@@ -17,8 +17,8 @@ export default function Provider({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthContextProvider>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <AuthContextProvider>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -27,7 +27,7 @@ export default function Provider({
         >
           {children}
         </ThemeProvider>
-      </QueryClientProvider>
-    </AuthContextProvider>
+      </AuthContextProvider>
+    </QueryClientProvider>
   );
 }
