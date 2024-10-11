@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from .serializer import CustomTokenObtainPairViewSerializer
 
 isHTTPOnly = False
-isSecure = False
+isSecure = True
 isSameSite = 'None'
 isPath = '/'
 minutes = 60

@@ -6,7 +6,7 @@ import { ThemeProvider } from "next-themes";
 
 import { QueryClient, QueryClientProvider } from "react-query";
 
-import { UserContextProvider } from "@/store/context/user.context";
+import { AuthContextProvider } from "@/store/context/auth.context";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -17,7 +17,7 @@ export default function Provider({
   children: React.ReactNode;
 }>) {
   return (
-    <UserContextProvider>
+    <AuthContextProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           attribute="class"
@@ -28,6 +28,6 @@ export default function Provider({
           {children}
         </ThemeProvider>
       </QueryClientProvider>
-    </UserContextProvider>
+    </AuthContextProvider>
   );
 }

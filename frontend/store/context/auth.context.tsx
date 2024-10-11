@@ -6,9 +6,9 @@ import { LOGIN_ROUTES, UNPROTECTED_ROUTES } from "@/constants/routes.constant";
 import { useStore } from "@/store/store";
 import { useShallow } from "zustand/react/shallow";
 
-const userContext = React.createContext({});
+const authContext = React.createContext({});
 
-export function UserContextProvider({
+export function AuthContextProvider({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -46,14 +46,14 @@ export function UserContextProvider({
     }
   }, [pathname, token]);
 
-  return <userContext.Provider value={{}}>{children}</userContext.Provider>;
+  return <authContext.Provider value={{}}>{children}</authContext.Provider>;
 }
 
-export function useUserContext() {
-  const context = React.useContext(userContext);
+export function useAuthContext() {
+  const context = React.useContext(authContext);
 
   if (!context) {
-    throw new Error("useUserContext must be used within a UserContextProvider");
+    throw new Error("useAuthContext must be used within a AuthContextProvider");
   }
 
   return context;

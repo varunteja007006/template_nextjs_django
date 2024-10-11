@@ -15,7 +15,10 @@ export function middleware(request: NextRequest) {
   }
 
   // If user has no token and is going to protected routes then redirect to login
-  else if (!hasToken && !UNPROTECTED_ROUTES.includes(request.nextUrl.pathname)) {
+  else if (
+    !hasToken &&
+    !UNPROTECTED_ROUTES.includes(request.nextUrl.pathname)
+  ) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -56,8 +59,7 @@ export function middleware(request: NextRequest) {
 // filter multiple paths
 export const config = {
   matcher: [
-    "/about/:path*",
-    "/dashboard/:path*",
+    "/",
     /*
      * Match all request paths except for the ones starting with:
      * - api (API routes)
