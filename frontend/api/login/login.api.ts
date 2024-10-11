@@ -1,5 +1,5 @@
 import axios from "@/lib/axios";
-import { LoginFormSchema } from "@/schema/auth/login";
+import { LoginFormSchema } from "@/schema/auth/login.schema";
 import { User } from "@/types/user.types";
 import { z } from "zod";
 

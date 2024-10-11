@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
   const hasRefreshToken = request.cookies.has("refresh_token");
 
   // If user has token and is going to login routes then redirect to home
+  // Also check if user has access token and refresh token
   if (
     (hasToken || hasAccessToken || hasRefreshToken) &&
     LOGIN_ROUTES.includes(request.nextUrl.pathname)
@@ -18,6 +19,7 @@ export function middleware(request: NextRequest) {
   }
 
   // If user has no token and is going to protected routes then redirect to login
+  // Also check if user has access token and refresh token
   else if (
     !hasToken &&
     !hasAccessToken &&
@@ -55,7 +57,7 @@ export function middleware(request: NextRequest) {
   //   });
   //   const cookie = response.cookies.get("company");
   //   console.log(cookie); // => { name: 'vercel', value: 'fast', Path: '/' }
-  // The outgoing response will have a `Set-Cookie:vercel=fast;path=/` header.
+  //  The outgoing response will have a `Set-Cookie:vercel=fast;path=/` header.
 
   // proceed to the requested url
   return NextResponse.next();

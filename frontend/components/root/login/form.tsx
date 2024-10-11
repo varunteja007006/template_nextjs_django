@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { LoginFormSchema } from "@/schema/auth/login";
+import { LoginFormSchema } from "@/schema/auth/login.schema";
 import { jwtDecode } from "jwt-decode";
 import { useAuthContext } from "@/store/context/auth.context";
 

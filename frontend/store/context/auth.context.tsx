@@ -6,7 +6,7 @@ import { LOGIN_ROUTES, UNPROTECTED_ROUTES } from "@/constants/routes.constant";
 import { useMutation, UseMutationResult } from "react-query";
 import { loginUser, loginUserV2, logoutUser } from "@/api/login/login.api";
 import { useToast } from "@/hooks/use-toast";
-import { LoginFormSchema } from "@/schema/auth/login";
+import { LoginFormSchema } from "@/schema/auth/login.schema";
 import { AxiosError } from "axios";
 import { User } from "@/types/user.types";
 import { z } from "zod";
@@ -39,9 +39,12 @@ export function AuthContextProvider({
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
+  // Tokens from cookies
+  const token = Cookies.get("token");
+  const access_token = Cookies.get("access_token");
+  const refresh_token = Cookies.get("refresh_token");
 
   const [userData, setUserData] = React.useState<UserState | null>(null);
-
   const reset = React.useCallback(() => {
     Cookies.remove("token");
     Cookies.remove("access_token");
@@ -49,11 +52,7 @@ export function AuthContextProvider({
     setUserData(null);
   }, []);
 
-  const token = Cookies.get("token");
-  const access_token = Cookies.get("access_token");
-  const refresh_token = Cookies.get("refresh_token");
-
-  function onSuccess(response: unknown) {
+  function onLogoutSuccess(response: unknown) {
     // If response failed
     if (!response) {
       toast({
@@ -93,7 +92,7 @@ export function AuthContextProvider({
     }
   }
 
-  function onSuccessV1(response: User | undefined) {
+  function onSuccess(response: User | undefined) {
     // If response failed
     if (!response) {
       toast({
@@ -121,19 +120,22 @@ export function AuthContextProvider({
         (error.response?.data as string) || `Oops something went wrong!`,
       variant: "destructive",
     });
+    console.error(error);
+  }
 
+  function onLogoutError(error: AxiosError) {
     console.error(error);
   }
 
   const logout = useMutation({
     mutationFn: logoutUser,
-    onSuccess,
-    onError,
+    onSuccess: onLogoutSuccess,
+    onError: onLogoutError,
   });
 
   const login = useMutation<User, AxiosError, z.infer<typeof LoginFormSchema>>({
     mutationFn: loginUser,
-    onSuccess: onSuccessV1,
+    onSuccess,
     onError,
   });
 
@@ -149,6 +151,7 @@ export function AuthContextProvider({
 
   React.useEffect(() => {
     // If user has token and is going to login routes then redirect to home
+    // also check if user has access and refresh tokens
     if (
       (!!token || !!access_token || !!refresh_token) &&
       LOGIN_ROUTES.includes(pathname)
