@@ -4,8 +4,12 @@ import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { LOGIN_ROUTES, UNPROTECTED_ROUTES } from "@/constants/routes.constant";
 import { useMutation, UseMutationResult } from "react-query";
-import { logoutUser } from "@/api/login/login.api";
+import { loginUser, loginUserV2, logoutUser } from "@/api/login/login.api";
 import { useToast } from "@/hooks/use-toast";
+import { LoginFormSchema } from "@/schema/auth/login";
+import { AxiosError } from "axios";
+import { User } from "@/types/user.types";
+import { z } from "zod";
 
 type UserState = {
   full_name: string;
@@ -16,7 +20,13 @@ type authContextType = {
   userData: UserState | null;
   setUserData: React.Dispatch<React.SetStateAction<UserState | null>>;
   reset: () => void;
-  logout:  UseMutationResult<unknown, Error, void, unknown>;
+  logout: UseMutationResult<unknown, Error, void, unknown>;
+  login: UseMutationResult<User, AxiosError, z.infer<typeof LoginFormSchema>>;
+  loginV2: UseMutationResult<
+    { success: boolean },
+    AxiosError,
+    z.infer<typeof LoginFormSchema>
+  >;
 };
 
 const authContext = React.createContext<authContextType | null>(null);
@@ -29,7 +39,6 @@ export function AuthContextProvider({
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-
 
   const [userData, setUserData] = React.useState<UserState | null>(null);
 
@@ -63,13 +72,78 @@ export function AuthContextProvider({
     router.push("/login");
   }
 
-  function onError(error: Error) {
+  function onSuccessV2(response: { success: boolean } | undefined) {
+    // If response failed
+    if (!response) {
+      toast({
+        title: "Login Failed",
+        description: `Oops something went wrong!`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (response.success) {
+      toast({
+        title: "Login Successful",
+        description: `Welcome!`,
+        variant: "success",
+      });
+      router.push("/user-profile");
+    }
+  }
+
+  function onSuccessV1(response: User | undefined) {
+    // If response failed
+    if (!response) {
+      toast({
+        title: "Login Failed",
+        description: `Oops something went wrong!`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUserData({ email: response.email, full_name: response.full_name });
+
+    toast({
+      title: "Login Successful",
+      description: `Welcome ${response.full_name}!`,
+      variant: "success",
+    });
+    router.push("/user-profile");
+  }
+
+  function onError(error: AxiosError) {
+    toast({
+      title: `${error.response?.statusText ?? ""}`,
+      description:
+        (error.response?.data as string) || `Oops something went wrong!`,
+      variant: "destructive",
+    });
+
     console.error(error);
   }
 
   const logout = useMutation({
     mutationFn: logoutUser,
     onSuccess,
+    onError,
+  });
+
+  const login = useMutation<User, AxiosError, z.infer<typeof LoginFormSchema>>({
+    mutationFn: loginUser,
+    onSuccess: onSuccessV1,
+    onError,
+  });
+
+  const loginV2 = useMutation<
+    { success: boolean },
+    AxiosError,
+    z.infer<typeof LoginFormSchema>
+  >({
+    mutationFn: loginUserV2,
+    onSuccess: onSuccessV2,
     onError,
   });
 
@@ -98,7 +172,7 @@ export function AuthContextProvider({
   }, [pathname, token, access_token, refresh_token]);
 
   const authObj = React.useMemo(
-    () => ({ reset, setUserData, userData, logout }),
+    () => ({ reset, setUserData, userData, logout, login, loginV2 }),
     [userData]
   );
 
