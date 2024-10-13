@@ -26,7 +26,6 @@ export function middleware(request: NextRequest) {
     !hasRefreshToken &&
     !UNPROTECTED_ROUTES.includes(request.nextUrl.pathname)
   ) {
-    console.log("object");
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

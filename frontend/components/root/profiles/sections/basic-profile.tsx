@@ -10,11 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 
 import { useAuthContext } from "@/store/context/auth.context";
+import { CircleCheck, CircleX } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function BasicProfile() {
+  const router = useRouter();
+
   const { userData, logout } = useAuthContext();
 
   return (
@@ -28,7 +31,7 @@ export default function BasicProfile() {
           <Button
             variant={"destructive"}
             size={"sm"}
-            onClick={() => logout.mutate()}
+            onClick={() => router.push("/logout")}
             disabled={logout.isLoading}
           >
             Logout
@@ -45,16 +48,12 @@ export default function BasicProfile() {
           <p>{userData?.email ?? ""}</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <p>Phone Number:</p>
-          <p>-</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <p>Address:</p>
-          <p>-</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
           <p>Remember login:</p>
-          <Checkbox checked={userData?.rememberLogin} />
+          {userData?.rememberLogin ? (
+            <CircleCheck className="text-green-500" />
+          ) : (
+            <CircleX className="text-red-500" />
+          )}
         </div>
       </CardContent>
     </Card>

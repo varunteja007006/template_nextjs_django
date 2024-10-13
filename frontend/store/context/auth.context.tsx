@@ -18,7 +18,7 @@ type UserState = {
   rememberLogin: boolean;
 };
 
-type AccessToken = {
+type DecodedAccessToken = {
   exp: number;
   iat: number;
   jti: string;
@@ -45,6 +45,9 @@ type authContextType = {
 
 const authContext = React.createContext<authContextType | null>(null);
 
+let refreshTokenTimer: NodeJS.Timeout | null = null;
+const REFRESH_TOKEN_INTERVAL = 10 * 60 * 1000;
+
 export function AuthContextProvider({
   children,
 }: Readonly<{
@@ -61,11 +64,34 @@ export function AuthContextProvider({
   const [userData, setUserData] = React.useState<UserState | null>(null);
 
   const reset = React.useCallback(() => {
+    // remove cookies
     Cookies.remove("token");
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
+    // clear storage
+    localStorage.clear();
+    sessionStorage.clear();
+    // reset the user state
     setUserData(null);
+    // redirect to login page
+    router.push("/login");
+    // reset timer
+    if (refreshTokenTimer) {
+      clearTimeout(refreshTokenTimer);
+    }
   }, []);
+
+  function setTheUserData(decoded: DecodedAccessToken) {
+    setUserData({
+      email: decoded.user.email,
+      full_name: decoded.user.username,
+      rememberLogin: true,
+    });
+  }
+
+  function onLogoutSettled() {
+    reset();
+  }
 
   function onLogoutSuccess(response: unknown) {
     // If response failed
@@ -78,12 +104,10 @@ export function AuthContextProvider({
       return;
     }
     // if response success
-    reset();
     toast({
       title: "Logout Successful",
       variant: "success",
     });
-    router.push("/login");
   }
 
   function onSuccessV2(response: { success: boolean } | undefined) {
@@ -98,13 +122,10 @@ export function AuthContextProvider({
     }
 
     if (response.success) {
-      const decoded: AccessToken = jwtDecode(Cookies.get("access_token") ?? "");
-
-      setUserData({
-        email: decoded.user.email,
-        full_name: decoded.user.username,
-        rememberLogin: true,
-      });
+      const decoded: DecodedAccessToken = jwtDecode(
+        Cookies.get("access_token") ?? ""
+      );
+      setTheUserData(decoded);
 
       toast({
         title: "Login Successful",
@@ -126,11 +147,15 @@ export function AuthContextProvider({
       return;
     }
 
-    setUserData({
+    const decoded = {
       email: response.email,
       full_name: response.full_name,
       rememberLogin: false,
-    });
+    };
+
+    setUserData(decoded);
+
+    localStorage.setItem("userData", JSON.stringify(decoded));
 
     toast({
       title: "Login Successful",
@@ -158,6 +183,7 @@ export function AuthContextProvider({
     mutationFn: logoutUser,
     onSuccess: onLogoutSuccess,
     onError: onLogoutError,
+    onSettled: onLogoutSettled,
   });
 
   const login = useMutation<User, AxiosError, z.infer<typeof LoginFormSchema>>({
@@ -200,6 +226,34 @@ export function AuthContextProvider({
       }
     }
   }, [pathname, token, access_token, refresh_token]);
+
+  React.useEffect(() => {
+    if (userData?.rememberLogin) {
+      refreshTokenTimer = setInterval(() => {
+        console.log("calling refresh token");
+      }, REFRESH_TOKEN_INTERVAL);
+    }
+
+    return () => {
+      if (refreshTokenTimer) {
+        clearInterval(refreshTokenTimer);
+      }
+    };
+  }, [userData?.rememberLogin]);
+
+  React.useEffect(() => {
+    if (token) {
+      const decoded = localStorage.getItem("userData");
+      if (decoded) {
+        setUserData(JSON.parse(decoded));
+      }
+    }
+
+    if (access_token) {
+      const decoded: DecodedAccessToken = jwtDecode(access_token);
+      setTheUserData(decoded);
+    }
+  }, [token, access_token]);
 
   const authObj = React.useMemo(
     () => ({ reset, setUserData, userData, logout, login, loginV2 }),
