@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 export default function BasicProfile() {
   const router = useRouter();
 
-  const { userData, logout } = useAuthContext();
+  const { userData } = useAuthContext();
 
   return (
     <Card className="w-full">
@@ -32,7 +32,6 @@ export default function BasicProfile() {
             variant={"destructive"}
             size={"sm"}
             onClick={() => router.push("/logout")}
-            disabled={logout.isLoading}
           >
             Logout
           </Button>

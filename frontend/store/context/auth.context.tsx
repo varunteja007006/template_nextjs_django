@@ -70,6 +70,7 @@ export function AuthContextProvider({
   const [userData, setUserData] = React.useState<UserState | null>(null);
 
   const reset = React.useCallback(() => {
+    // ! Do not include redirection to login here
     // remove cookies
     Cookies.remove("token");
     Cookies.remove("access_token");
@@ -79,8 +80,6 @@ export function AuthContextProvider({
     sessionStorage.clear();
     // reset the user state
     setUserData(null);
-    // redirect to login page
-    router.push("/login");
     // reset timer
     if (refreshTokenTimer) {
       clearTimeout(refreshTokenTimer);
@@ -252,7 +251,6 @@ export function AuthContextProvider({
   React.useEffect(() => {
     if (userData?.rememberLogin) {
       refreshTokenTimer = setInterval(() => {
-        console.log("calling refresh token");
         refreshV2.mutate({});
       }, REFRESH_TOKEN_INTERVAL);
     }

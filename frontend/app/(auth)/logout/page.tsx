@@ -6,8 +6,10 @@ export default function LogoutPage() {
   const { logout } = useAuthContext();
 
   React.useEffect(() => {
-    logout.mutate();
-  }, [logout]);
+    if (!logout.isLoading) {
+      logout.mutate();
+    }
+  }, []);
 
   return <div>LogoutPage</div>;
 }

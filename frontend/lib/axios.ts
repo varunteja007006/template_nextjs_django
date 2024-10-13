@@ -1,3 +1,4 @@
+import { LOGIN_ROUTES } from "@/constants/routes.constant";
 import axios from "axios";
 
 import Cookies from "js-cookie";
@@ -21,8 +22,13 @@ axios.interceptors.response.use(
   },
 
   function (error) {
-    if (error.status === 401) {
+    if (
+      error.status === 401 &&
+      !LOGIN_ROUTES.includes(window.location.pathname)
+    ) {
       Cookies.remove("token");
+      Cookies.remove("access_token");
+      Cookies.remove("refresh_token");
       window.location.href = "/login"; // If the user is not authenticated, redirect to login page
     }
 
