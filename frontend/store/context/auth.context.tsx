@@ -10,10 +10,24 @@ import { LoginFormSchema } from "@/schema/auth/login.schema";
 import { AxiosError } from "axios";
 import { User } from "@/types/user.types";
 import { z } from "zod";
+import { jwtDecode } from "jwt-decode";
 
 type UserState = {
   full_name: string;
   email: string;
+  rememberLogin: boolean;
+};
+
+type AccessToken = {
+  exp: number;
+  iat: number;
+  jti: string;
+  user_id: number;
+  user: {
+    email: string;
+    username: string;
+  };
+  token_type: "access";
 };
 
 type authContextType = {
@@ -45,6 +59,7 @@ export function AuthContextProvider({
   const refresh_token = Cookies.get("refresh_token");
 
   const [userData, setUserData] = React.useState<UserState | null>(null);
+
   const reset = React.useCallback(() => {
     Cookies.remove("token");
     Cookies.remove("access_token");
@@ -83,6 +98,14 @@ export function AuthContextProvider({
     }
 
     if (response.success) {
+      const decoded: AccessToken = jwtDecode(Cookies.get("access_token") ?? "");
+
+      setUserData({
+        email: decoded.user.email,
+        full_name: decoded.user.username,
+        rememberLogin: true,
+      });
+
       toast({
         title: "Login Successful",
         description: `Welcome!`,
@@ -103,7 +126,11 @@ export function AuthContextProvider({
       return;
     }
 
-    setUserData({ email: response.email, full_name: response.full_name });
+    setUserData({
+      email: response.email,
+      full_name: response.full_name,
+      rememberLogin: false,
+    });
 
     toast({
       title: "Login Successful",

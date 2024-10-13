@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,7 +19,6 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { LoginFormSchema } from "@/schema/auth/login.schema";
-import { jwtDecode } from "jwt-decode";
 import { useAuthContext } from "@/store/context/auth.context";
 
 export default function LoginForm() {
@@ -52,9 +50,6 @@ export default function LoginForm() {
                 <FormControl>
                   <Input placeholder="username" {...field} />
                 </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

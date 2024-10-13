@@ -35,7 +35,7 @@ export default function BasicProfile() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
         <div className="grid grid-cols-2 gap-4">
           <p>Full Name:</p>
           <p>{userData?.full_name ?? ""}</p>
@@ -54,7 +54,7 @@ export default function BasicProfile() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <p>Remember login:</p>
-          <Checkbox defaultChecked />
+          <Checkbox checked={userData?.rememberLogin} />
         </div>
       </CardContent>
     </Card>
