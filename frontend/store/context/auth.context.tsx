@@ -4,13 +4,19 @@ import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { LOGIN_ROUTES, UNPROTECTED_ROUTES } from "@/constants/routes.constant";
 import { useMutation, UseMutationResult } from "react-query";
-import { loginUser, loginUserV2, logoutUser } from "@/api/login/login.api";
+import {
+  loginUser,
+  loginUserRefreshV2,
+  loginUserV2,
+  logoutUser,
+} from "@/api/login/login.api";
 import { useToast } from "@/hooks/use-toast";
 import { LoginFormSchema } from "@/schema/auth/login.schema";
 import { AxiosError } from "axios";
 import { User } from "@/types/user.types";
 import { z } from "zod";
 import { jwtDecode } from "jwt-decode";
+import { getErrors } from "@/utils/api.utils";
 
 type UserState = {
   full_name: string;
@@ -89,6 +95,22 @@ export function AuthContextProvider({
     });
   }
 
+  function onRefreshSuccess(response: { success: boolean } | undefined) {
+    if (response?.success) {
+      toast({
+        description: "Your session has been refreshed!",
+        variant: "success",
+      });
+      return;
+    }
+
+    toast({
+      description: "Your session has been expired!",
+      variant: "destructive",
+    });
+    router.push("/logout");
+  }
+
   function onLogoutSettled() {
     reset();
   }
@@ -105,7 +127,7 @@ export function AuthContextProvider({
     }
     // if response success
     toast({
-      title: "Logout Successful",
+      description: "Logout Successful",
       variant: "success",
     });
   }
@@ -129,7 +151,7 @@ export function AuthContextProvider({
 
       toast({
         title: "Login Successful",
-        description: `Welcome!`,
+        description: `Welcome! ${decoded.user.username ?? ""}`,
         variant: "success",
       });
       router.push("/user-profile");
@@ -166,13 +188,7 @@ export function AuthContextProvider({
   }
 
   function onError(error: AxiosError) {
-    toast({
-      title: `${error.response?.statusText ?? ""}`,
-      description:
-        (error.response?.data as string) || `Oops something went wrong!`,
-      variant: "destructive",
-    });
-    console.error(error);
+    toast(getErrors(error));
   }
 
   function onLogoutError(error: AxiosError) {
@@ -199,6 +215,12 @@ export function AuthContextProvider({
   >({
     mutationFn: loginUserV2,
     onSuccess: onSuccessV2,
+    onError,
+  });
+
+  const refreshV2 = useMutation<{ success: boolean }, AxiosError, {}>({
+    mutationFn: loginUserRefreshV2,
+    onSuccess: onRefreshSuccess,
     onError,
   });
 
@@ -231,6 +253,7 @@ export function AuthContextProvider({
     if (userData?.rememberLogin) {
       refreshTokenTimer = setInterval(() => {
         console.log("calling refresh token");
+        refreshV2.mutate({});
       }, REFRESH_TOKEN_INTERVAL);
     }
 

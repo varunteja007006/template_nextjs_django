@@ -16,10 +16,8 @@ export const loginUserV2 = async (data: z.infer<typeof LoginFormSchema>) => {
   return response.data;
 };
 
-export const loginUserRefreshV2 = async (
-  data: z.infer<typeof LoginFormSchema>
-) => {
-  const response = await axios.post<User>(
+export const loginUserRefreshV2 = async (data: {} = {}) => {
+  const response = await axios.post<{ success: boolean }>(
     "/api/v1/auth/login/token/refresh/v2",
     data
   );
