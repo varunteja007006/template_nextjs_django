@@ -1,5 +1,5 @@
 "use client";
-import { useAuthContext } from "@/store/context/auth.context";
+import { useAuthContext } from "@/features/auth/context/auth.context";
 import React from "react";
 
 export default function LogoutPage() {

@@ -6,7 +6,7 @@ import { ThemeProvider } from "next-themes";
 
 import { QueryClient, QueryClientProvider } from "react-query";
 
-import { AuthContextProvider } from "@/store/context/auth.context";
+import { AuthContextProvider } from "@/features/auth/context/auth.context";
 
 // Create a client
 const queryClient = new QueryClient();

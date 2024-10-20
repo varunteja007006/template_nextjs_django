@@ -9,9 +9,9 @@ import {
   loginUserRefreshV2,
   loginUserV2,
   logoutUser,
-} from "@/api/login/login.api";
+} from "@/features/auth/api/login.api";
 import { useToast } from "@/hooks/use-toast";
-import { LoginFormSchema } from "@/schema/auth/login.schema";
+import { LoginFormSchema } from "@/features/auth/schema/login.schema";
 import { AxiosError } from "axios";
 import { User } from "@/types/user.types";
 import { z } from "zod";
@@ -84,7 +84,7 @@ export function AuthContextProvider({
     if (refreshTokenTimer) {
       clearTimeout(refreshTokenTimer);
     }
-  }, []);
+  }, [refreshTokenTimer]);
 
   function setTheUserData(decoded: DecodedAccessToken) {
     setUserData({
@@ -108,27 +108,6 @@ export function AuthContextProvider({
       variant: "destructive",
     });
     router.push("/logout");
-  }
-
-  function onLogoutSettled() {
-    reset();
-  }
-
-  function onLogoutSuccess(response: unknown) {
-    // If response failed
-    if (!response) {
-      toast({
-        title: "Logout Failed",
-        description: `Oops something went wrong!`,
-        variant: "destructive",
-      });
-      return;
-    }
-    // if response success
-    toast({
-      description: "Logout Successful",
-      variant: "success",
-    });
   }
 
   function onSuccessV2(response: { success: boolean } | undefined) {
@@ -190,14 +169,31 @@ export function AuthContextProvider({
     toast(getErrors(error));
   }
 
-  function onLogoutError(error: AxiosError) {
-    console.error(error);
+  function onLogoutSuccess(response: unknown) {
+    // If response failed
+    if (!response) {
+      toast({
+        title: "Logout Failed",
+        description: `Oops something went wrong!`,
+        variant: "destructive",
+      });
+      return;
+    }
+    // if response success
+    toast({
+      description: "Logout Successful",
+      variant: "success",
+    });
+  }
+
+  function onLogoutSettled() {
+    reset();
   }
 
   const logout = useMutation({
     mutationFn: logoutUser,
     onSuccess: onLogoutSuccess,
-    onError: onLogoutError,
+    onError,
     onSettled: onLogoutSettled,
   });
 

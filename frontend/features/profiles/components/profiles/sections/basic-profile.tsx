@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { useAuthContext } from "@/store/context/auth.context";
+import { useAuthContext } from "@/features/auth/context/auth.context";
 import { CircleCheck, CircleX } from "lucide-react";
 import { useRouter } from "next/navigation";
 

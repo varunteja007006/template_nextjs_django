@@ -18,8 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { LoginFormSchema } from "@/schema/auth/login.schema";
-import { useAuthContext } from "@/store/context/auth.context";
+import { LoginFormSchema } from "@/features/auth/schema/login.schema";
+import { useAuthContext } from "@/features/auth/context/auth.context";
 
 export default function LoginForm() {
   const { login, loginV2 } = useAuthContext();

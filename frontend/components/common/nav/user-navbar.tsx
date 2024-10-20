@@ -5,7 +5,7 @@ import { ModeToggle } from "@/components/ui/custom/theme-toggle";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuthContext } from "@/store/context/auth.context";
+import { useAuthContext } from "@/features/auth/context/auth.context";
 
 export default function UserNavbar() {
   const { userData } = useAuthContext();
