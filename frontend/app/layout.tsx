@@ -38,9 +38,7 @@ export default function RootLayout({
           <header>
             <NavigationMenuComp />
           </header>
-          <main className="w-full min-h-screen font-[family-name:var(--font-geist-sans)]">
-            {children}
-          </main>
+          <main className="w-full min-h-screen">{children}</main>
           <Footer />
           <Toaster />
         </Provider>

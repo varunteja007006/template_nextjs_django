@@ -37,8 +37,8 @@ export default function LoginForm() {
   }
 
   return (
-    <Card className="flex flex-col items-start justify-start gap-2 h-fit max-w-[280px] p-5">
-      <div className="text-lg font-semibold">Login</div>
+    <Card className="w-[280px] p-5">
+      <div className="text-lg font-semibold mb-3">Login</div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
