@@ -52,7 +52,7 @@ type authContextType = {
 const authContext = React.createContext<authContextType | null>(null);
 
 let refreshTokenTimer: NodeJS.Timeout | null = null;
-const REFRESH_TOKEN_INTERVAL = 10 * 60 * 1000;
+const REFRESH_TOKEN_INTERVAL = 15 * 60 * 1000; // fifteen minutes
 
 export function AuthContextProvider({
   children,

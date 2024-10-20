@@ -14,7 +14,7 @@ isHTTPOnly = False
 isSecure = True
 isSameSite = 'None'
 isPath = '/'
-minutes = 60
+minutes = 15
 days_30 = 30
 days_1 =1
 
