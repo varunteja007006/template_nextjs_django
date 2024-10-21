@@ -1,7 +1,6 @@
-import { LOGIN_ROUTES } from "@/constants/routes.constant";
+import { loginUserRefreshV2, logoutUser } from "@/features/auth/api/login.api";
 import axios from "axios";
 
-import Cookies from "js-cookie";
 import _ from "lodash";
 
 axios.defaults.baseURL = `${process.env.NEXT_PUBLIC_BACKEND_API}`;
@@ -9,10 +8,6 @@ axios.defaults.timeout = 1000;
 axios.defaults.withCredentials = true; // Important for sending cookies
 
 axios.interceptors.request.use((config) => {
-  const token = Cookies.get("token");
-  if (token) {
-    config.headers.Authorization = `Token ${token}`;
-  }
   return config;
 });
 
@@ -22,14 +17,32 @@ axios.interceptors.response.use(
   },
 
   function (error) {
-    if (
-      error.status === 401 &&
-      !LOGIN_ROUTES.includes(window.location.pathname)
-    ) {
-      Cookies.remove("token");
-      Cookies.remove("access_token");
-      Cookies.remove("refresh_token");
-      window.location.href = "/login"; // If the user is not authenticated, redirect to login page
+    if (error.status === 401) {
+      try {
+        const logout = async () => {
+          const res = await logoutUser();
+          if (res.success) {
+            window.location.href = "/";
+          } else {
+            alert("Logout Failed");
+          }
+        };
+
+        const refresh = async () => {
+          const res = await loginUserRefreshV2();
+          if (res.success) {
+            console.log("Refreshed");
+            return;
+          }
+          // logout user
+          alert("Session Expired, Please Login Again");
+          logout();
+        };
+
+        refresh();
+      } catch (error) {
+        console.error(error);
+      }
     }
 
     const data = error.response?.data ?? {};

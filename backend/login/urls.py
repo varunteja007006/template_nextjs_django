@@ -14,7 +14,8 @@ urlpatterns = [
     path("logout", views.logout, name="logout"),
 
     # Token based api = Header Authentication - token {token}
-    path("test-token", views.test_token, name="test_token"),
+    path("test-token", views.validate_token, name="test_token"),
+    path("validate-token", views.validate_token, name="validate_token"),
     path("emergency-logout", views.emergency_logout, name="emergency_logout"),
 
     # Default Access and Refresh token generating login API

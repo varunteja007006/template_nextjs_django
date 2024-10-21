@@ -1,12 +1,10 @@
 import * as React from "react";
 
 import { usePathname, useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import { LOGIN_ROUTES, UNPROTECTED_ROUTES } from "@/constants/routes.constant";
 import { useMutation, UseMutationResult } from "react-query";
 import {
   loginUser,
-  loginUserRefreshV2,
   loginUserV2,
   logoutUser,
 } from "@/features/auth/api/login.api";
@@ -15,25 +13,14 @@ import { LoginFormSchema } from "@/features/auth/schema/login.schema";
 import { AxiosError } from "axios";
 import { User } from "@/types/user.types";
 import { z } from "zod";
-import { jwtDecode } from "jwt-decode";
 import { getErrors } from "@/utils/api.utils";
+import { validateTokenQuery } from "../api/login.query";
 
 type UserState = {
-  full_name: string;
+  full_name?: string;
   email: string;
   rememberLogin: boolean;
-};
-
-type DecodedAccessToken = {
-  exp: number;
-  iat: number;
-  jti: string;
-  user_id: number;
-  user: {
-    email: string;
-    username: string;
-  };
-  token_type: "access";
+  isAuthenticated: boolean;
 };
 
 type authContextType = {
@@ -51,9 +38,6 @@ type authContextType = {
 
 const authContext = React.createContext<authContextType | null>(null);
 
-let refreshTokenTimer: NodeJS.Timeout | null = null;
-const REFRESH_TOKEN_INTERVAL = 15 * 60 * 1000; // fifteen minutes
-
 export function AuthContextProvider({
   children,
 }: Readonly<{
@@ -62,55 +46,23 @@ export function AuthContextProvider({
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-  // Tokens from cookies
-  const token = Cookies.get("token");
-  const access_token = Cookies.get("access_token");
-  const refresh_token = Cookies.get("refresh_token");
 
   const [userData, setUserData] = React.useState<UserState | null>(null);
 
   const reset = React.useCallback(() => {
-    // ! Do not include redirection to login here
-    // remove cookies
-    Cookies.remove("token");
-    Cookies.remove("access_token");
-    Cookies.remove("refresh_token");
     // clear storage
     localStorage.clear();
     sessionStorage.clear();
     // reset the user state
     setUserData(null);
-    // reset timer
-    if (refreshTokenTimer) {
-      clearTimeout(refreshTokenTimer);
-    }
-  }, [refreshTokenTimer]);
 
-  function setTheUserData(decoded: DecodedAccessToken) {
-    setUserData({
-      email: decoded.user.email,
-      full_name: decoded.user.username,
-      rememberLogin: true,
-    });
-  }
+    // redirect to login
+    router.push("/login");
+  }, []);
 
-  function onRefreshSuccess(response: { success: boolean } | undefined) {
-    if (response?.success) {
-      toast({
-        description: "Your session has been refreshed!",
-        variant: "success",
-      });
-      return;
-    }
+  const validateToken = validateTokenQuery();
 
-    toast({
-      description: "Your session has been expired!",
-      variant: "destructive",
-    });
-    router.push("/logout");
-  }
-
-  function onSuccessV2(response: { success: boolean } | undefined) {
+  function onLoginV2Success(response: { success: boolean } | undefined) {
     // If response failed
     if (!response) {
       toast({
@@ -122,21 +74,17 @@ export function AuthContextProvider({
     }
 
     if (response.success) {
-      const decoded: DecodedAccessToken = jwtDecode(
-        Cookies.get("access_token") ?? ""
-      );
-      setTheUserData(decoded);
-
       toast({
         title: "Login Successful",
-        description: `Welcome! ${decoded.user.username ?? ""}`,
+        description: `Welcome!`,
         variant: "success",
       });
+      validateToken.refetch();
       router.push("/user-profile");
     }
   }
 
-  function onSuccess(response: User | undefined) {
+  function onLoginSuccess(response: User | undefined) {
     // If response failed
     if (!response) {
       toast({
@@ -151,9 +99,10 @@ export function AuthContextProvider({
       email: response.email,
       full_name: response.full_name,
       rememberLogin: false,
+      isAuthenticated: true,
     };
 
-    setUserData(decoded);
+    setUserData((prev) => ({ ...prev, ...decoded }));
 
     localStorage.setItem("userData", JSON.stringify(decoded));
 
@@ -199,7 +148,7 @@ export function AuthContextProvider({
 
   const login = useMutation<User, AxiosError, z.infer<typeof LoginFormSchema>>({
     mutationFn: loginUser,
-    onSuccess,
+    onSuccess: onLoginSuccess,
     onError,
   });
 
@@ -209,72 +158,23 @@ export function AuthContextProvider({
     z.infer<typeof LoginFormSchema>
   >({
     mutationFn: loginUserV2,
-    onSuccess: onSuccessV2,
-    onError,
-  });
-
-  const refreshV2 = useMutation<{ success: boolean }, AxiosError, {}>({
-    mutationFn: loginUserRefreshV2,
-    onSuccess: onRefreshSuccess,
+    onSuccess: onLoginV2Success,
     onError,
   });
 
   React.useEffect(() => {
-    // If user has token and is going to login routes then redirect to home
-    // also check if user has access and refresh tokens
-    if (
-      (!!token || !!access_token || !!refresh_token) &&
-      LOGIN_ROUTES.includes(pathname)
-    ) {
-      return router.push("/user-profile");
+    if (validateToken.data) {
+      setUserData((prev) => ({
+        ...prev,
+        ...validateToken.data,
+        rememberLogin: true,
+      }));
     }
-
-    // If user has no token and is not going to protected routes then redirect to login
-    else if (!token) {
-      if (!!access_token || !!refresh_token) {
-        // also check if he has access token
-        return;
-      }
-
-      reset();
-
-      if (!UNPROTECTED_ROUTES.includes(pathname)) {
-        return router.push("/login");
-      }
-    }
-  }, [pathname, token, access_token, refresh_token]);
-
-  React.useEffect(() => {
-    if (userData?.rememberLogin) {
-      refreshTokenTimer = setInterval(() => {
-        refreshV2.mutate({});
-      }, REFRESH_TOKEN_INTERVAL);
-    }
-
-    return () => {
-      if (refreshTokenTimer) {
-        clearInterval(refreshTokenTimer);
-      }
-    };
-  }, [userData?.rememberLogin]);
-
-  React.useEffect(() => {
-    if (token) {
-      const decoded = localStorage.getItem("userData");
-      if (decoded) {
-        setUserData(JSON.parse(decoded));
-      }
-    }
-
-    if (access_token) {
-      const decoded: DecodedAccessToken = jwtDecode(access_token);
-      setTheUserData(decoded);
-    }
-  }, [token, access_token]);
+  }, [validateToken.data]);
 
   const authObj = React.useMemo(
     () => ({ reset, setUserData, userData, logout, login, loginV2 }),
-    [userData]
+    [userData, logout]
   );
 
   return (

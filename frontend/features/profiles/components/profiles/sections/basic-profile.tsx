@@ -13,12 +13,9 @@ import {
 
 import { useAuthContext } from "@/features/auth/context/auth.context";
 import { CircleCheck, CircleX } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 export default function BasicProfile() {
-  const router = useRouter();
-
-  const { userData } = useAuthContext();
+  const { userData, logout } = useAuthContext();
 
   return (
     <Card className="w-full">
@@ -31,7 +28,7 @@ export default function BasicProfile() {
           <Button
             variant={"destructive"}
             size={"sm"}
-            onClick={() => router.push("/logout")}
+            onClick={() => logout.mutate()}
           >
             Logout
           </Button>

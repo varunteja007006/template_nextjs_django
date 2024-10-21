@@ -17,7 +17,8 @@ import { useAuthContext } from "@/features/auth/context/auth.context";
 export default function UserNavbar() {
   const { userData } = useAuthContext();
 
-  return (  <div className="flex items-center gap-5">
+  return (
+    <div className="flex items-center gap-5">
       <div className="flex flex-row items-center">
         {userData?.email ? (
           <div className="flex gap-1 items-center">
@@ -35,9 +36,7 @@ export default function UserNavbar() {
             </HoverCard>
             <Avatar>
               <AvatarImage src="" />
-              <AvatarFallback>
-                {userData?.full_name?.[0] || "USER"}
-              </AvatarFallback>
+              <AvatarFallback>{userData?.full_name?.[0] || "U"}</AvatarFallback>
             </Avatar>
           </div>
         ) : (

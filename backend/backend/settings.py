@@ -237,21 +237,23 @@ SIMPLE_JWT = {
     'AUTH_COOKIE': 'access_token',  # Cookie name for the access token
     'AUTH_COOKIE_REFRESH': 'refresh_token',  # Cookie name for the refresh token
     'AUTH_COOKIE_DOMAIN': None,     # A string like "example.com", or None for standard domain cookie.
-    'AUTH_COOKIE_SECURE': False,  # Set to True if using HTTPS
+    'AUTH_COOKIE_SECURE': True,  # Set to True if using HTTPS
     'AUTH_COOKIE_HTTP_ONLY': True,  # Make the cookie HTTP only
     'AUTH_COOKIE_PATH': '/',  # Root path for the cookie
     'AUTH_COOKIE_SAMESITE': 'Lax',  # Adjust according to your needs. This can be 'Lax', 'Strict', or None to disable the flag.
 }
 
 if DEBUG:
-    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ORIGIN_ALLOW_ALL = False
+    CORS_ORIGIN_WHITELIST = [
+        "http://localhost:3000",
+    ]    
     CORS_ALLOW_CREDENTIALS = True
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
 else:
     CORS_ORIGIN_ALLOW_ALL = False
     CORS_ORIGIN_WHITELIST = [
-        "https://example.com",
         "http://localhost:3000",
     ]
 

@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from datetime import datetime, timedelta
 from .serializer import CustomTokenObtainPairViewSerializer
 
-isHTTPOnly = False
+isHTTPOnly = True
 isSecure = True
 isSameSite = 'None'
 isPath = '/'
@@ -211,10 +211,11 @@ def logout(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def test_token(request):
+def validate_token(request):
     if request.user.is_authenticated:
         user_data = {
             'email': request.user.email,
+            'full_name': request.user.get_full_name(),
             'isAuthenticated': request.user.is_authenticated
         }
         return Response(user_data, status=status.HTTP_200_OK)
