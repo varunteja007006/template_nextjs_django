@@ -35,12 +35,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-w-[300px] scroll-smooth`}
       >
         <Provider>
-          <header>
-            <NavigationMenuComp />
-          </header>
-          <main className="w-full min-h-screen">{children}</main>
-          <Footer />
-          <Toaster />
+          <main className="max-h-screen">
+            <header>
+              <NavigationMenuComp />
+            </header>
+            <div className="w-full min-h-[85vh]">{children}</div>
+            <Footer />
+            <Toaster />
+          </main>
         </Provider>
       </body>
     </html>
