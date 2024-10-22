@@ -38,3 +38,26 @@ export const validateToken = async () => {
   );
   return response.data;
 };
+
+export async function loginWithGoogle(): Promise<void> {
+  const oauth2Endpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+
+  // Parameters to pass to OAuth 2.0 endpoint.
+  const params: Record<string, string> = {
+    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string,
+    redirect_uri: "http://localhost:3000",
+    response_type: "token",
+    // Multiple scopes separated by space
+    scope:
+      "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
+    include_granted_scopes: "true",
+    state: "",
+  };
+
+  // Build the full URL with query params for the redirection
+  const urlParams = new URLSearchParams(params).toString();
+  const authUrl = `${oauth2Endpoint}?${urlParams}`;
+
+  // Redirect the user to Google's OAuth 2.0 endpoint
+  window.location.href = authUrl;
+}

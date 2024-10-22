@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { LoginFormSchema } from "@/features/auth/schema/login.schema";
 import { useAuthContext } from "@/features/auth/context/auth.context";
-import OtherLogins from "./other-logins";
+import OtherLogins from "@/features/auth/components/login/other-logins";
 
 export default function LoginForm() {
   const { login, loginV2 } = useAuthContext();
