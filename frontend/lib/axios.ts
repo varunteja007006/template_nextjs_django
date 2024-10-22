@@ -39,6 +39,7 @@ axios.interceptors.response.use(
           logout();
         };
 
+        
         refresh();
       } catch (error) {
         console.error(error);
